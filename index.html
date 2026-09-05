@@ -44,10 +44,19 @@
       <div class="section-head"><div><span class="eyebrow">LỘ TRÌNH</span><h2>Chọn đúng chỗ đang yếu</h2></div><div class="search-wrap"><span>⌕</span><input id="searchInput" placeholder="Tìm công thức, chủ đề..." aria-label="Tìm kiến thức" /></div></div>
       <div id="gradeGrid" class="grade-grid"></div>
 
-      <section class="quick-panel"><div><span class="eyebrow">QUICK REVIEW</span><h2>4 câu hỏi trước khi dùng một công thức</h2></div><div class="principles"><div><b>01</b><span>Đại lượng nào đang thay đổi?</span></div><div><b>02</b><span>Điều kiện để công thức đúng?</span></div><div><b>03</b><span>Đơn vị SI là gì?</span></div><div><b>04</b><span>Đồ thị nói gì về mối quan hệ?</span></div></div></section>
+      <section class="quick-panel"><div><span class="eyebrow">QUICK REVIEW</span><h2>4 câu hỏi trước khi dùng một công thức</h2></div><div class="principles"><div><b>01</b><span>Đại lượng nào đang thay đổi?</span></div><div><b>02</b><span>Điều kiện để công thức đúng?</span></div><div><b>03</b><span>Đơn vị SI là gì?</span></div><div><b>04</b><span>Đồ thị nói gì về mối quan hệ?</span></div></div></section><section class="quick-panel"><div><span class="eyebrow">GRADE 11 FOCUS</span><h2>Học pha bằng bản chất, không học vẹt</h2></div><div class="principles"><div><b>x</b><span>Li độ</span></div><div><b>v</b><span>Sớm pha π/2 so với x</span></div><div><b>a</b><span>Ngược pha x</span></div><div><b>O</b><span>Cân bằng: |v| lớn nhất</span></div></div></section>
     </section>
 
     <section id="detailView" class="view"><button class="back-btn" data-action="home">← Tổng quan</button><div id="detailContent"></div></section>
+
+<section id="graphsView" class="view">
+  <div class="detail-head graph-library-head">
+    <div><span class="eyebrow">GRAPH LIBRARY • 9 → 12</span><h1>Thư viện đồ thị Vật Lý</h1><p class="muted">Không chỉ nhìn hình: đọc <b>trục → công thức → độ dốc → diện tích → điểm đặc biệt → bản chất</b>.</p></div>
+  </div>
+  <div class="graph-cheats"><div><b>x–t</b><span>dốc = v</span></div><div><b>v–t</b><span>dốc = a • diện tích = Δx</span></div><div><b>a–t</b><span>diện tích = Δv</span></div><div><b>F–s</b><span>diện tích = công</span></div><div><b>I–t</b><span>diện tích = điện lượng</span></div><div><b>x → v → a</b><span>mỗi bước π/2</span></div></div>
+  <div class="graph-search"><span>⌕</span><input id="graphSearch" placeholder="Tìm đồ thị: a-t, v-t, x-t, RLC, phóng xạ..." aria-label="Tìm đồ thị" /></div><div class="graph-filters" id="graphFilters"><button class="btn btn-soft active" data-gfilter="all">Tất cả</button><button class="btn btn-soft" data-gfilter="9">Lớp 9</button><button class="btn btn-soft" data-gfilter="10">Lớp 10</button><button class="btn btn-soft" data-gfilter="11">Lớp 11</button><button class="btn btn-soft" data-gfilter="12">Lớp 12</button></div>
+  <div id="graphLibrary" class="graph-library"></div>
+</section>
 
     <section id="practiceView" class="view"><div class="section-head"><div><span class="eyebrow">PRACTICE</span><h2>Luyện tập theo bản chất</h2></div><button class="btn btn-soft" data-action="randomQuestion">🎲 Câu khác</button></div><div id="quizBox" class="quiz-box"></div></section>
 

@@ -33,3 +33,15 @@ python -m http.server 5500
 Sau đó mở `http://localhost:5500`.
 
 Có thể deploy thẳng lên Firebase Hosting, Vercel, Netlify hoặc GitHub Pages.
+
+## Thư viện đồ thị
+Bản v2 có tab **Đồ thị** riêng với thư viện đồ thị quan trọng lớp 9→12. Mỗi đồ thị gồm:
+- Trục Ox/Oy và đơn vị
+- Công thức quan hệ
+- Dạng đường cong
+- Ý nghĩa độ dốc
+- Ý nghĩa diện tích dưới đồ thị khi áp dụng
+- Điểm đặc biệt
+- Mẹo nhớ nhanh
+- Các đồ thị trọng tâm dao động 11: x-t, v-t, a-t, v-x, a-x, năng lượng-t
+- Sóng, sóng dừng, điện trường, nguồn điện, khí lý tưởng, RLC, lượng tử và phóng xạ
