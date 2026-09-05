@@ -33,4 +33,3 @@ python -m http.server 5500
 Sau đó mở `http://localhost:5500`.
 
 Có thể deploy thẳng lên Firebase Hosting, Vercel, Netlify hoặc GitHub Pages.
-# vatly
