@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0b1220" />
+  <title>Vật Lý 9 → 12 | Nắm bản chất</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Bỏ qua đến nội dung</a>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <header class="topbar">
+    <button id="menuBtn" class="icon-btn" aria-label="Mở menu" aria-controls="sidebar" aria-expanded="false">☰</button>
+    <div class="brand"><span class="brand-mark">Φ</span><div><strong>Vật Lý</strong><small>9 → 12</small></div></div>
+    <div class="top-actions">
+      <button id="themeBtn" class="icon-btn" title="Đổi giao diện" aria-label="Đổi giao diện">◐</button>
+      <button id="authBtn" class="btn btn-ghost">Đăng nhập</button>
+    </div>
+  </header>
+
+  <aside id="sidebar" class="sidebar" aria-label="Điều hướng kiến thức">
+    <div class="sidebar-head"><span>KHUNG KIẾN THỨC</span><button id="closeMenu" class="icon-btn mobile-only" aria-label="Đóng menu">×</button></div>
+    <nav id="navList"></nav>
+    <div class="side-card"><b>⚡ Mẹo học</b><p>Đừng chỉ học thuộc công thức. Mỗi công thức đều có <strong>bản chất → điều kiện → đơn vị → đồ thị → dạng bài</strong>.</p></div>
+  </aside>
+
+  <main id="main" class="main">
+    <section id="homeView" class="view active">
+      <div class="hero">
+        <div class="hero-copy">
+          <div class="eyebrow">PHYSICS MASTER • 9 → 12</div>
+          <h1>Học Vật Lý bằng <span>bản chất</span>, không phải học vẹt.</h1>
+          <p>Tra cứu lý thuyết, công thức, điều kiện áp dụng, đồ thị và dạng bài từ lớp 9 đến lớp 12. Ưu tiên phần lớp 11 thật kỹ.</p>
+          <div class="hero-actions"><button class="btn btn-primary" data-action="start">Bắt đầu học →</button><button class="btn btn-soft" data-action="random">🎲 Công thức ngẫu nhiên</button></div>
+          <div class="trust-row"><span>✓ MathJax chuẩn</span><span>✓ Responsive 320px+</span><span>✓ Firebase</span></div>
+        </div>
+        <div class="hero-visual" aria-label="Minh họa dao động điều hòa"><div class="wave-card"><div class="wave-label">DAO ĐỘNG ĐIỀU HÒA</div><canvas id="heroChart"></canvas><div class="wave-formula">\(x=A\cos(\omega t+\varphi)\)</div></div></div>
+      </div>
+
+      <div class="section-head"><div><span class="eyebrow">LỘ TRÌNH</span><h2>Chọn đúng chỗ đang yếu</h2></div><div class="search-wrap"><span>⌕</span><input id="searchInput" placeholder="Tìm công thức, chủ đề..." aria-label="Tìm kiến thức" /></div></div>
+      <div id="gradeGrid" class="grade-grid"></div>
+
+      <section class="quick-panel"><div><span class="eyebrow">QUICK REVIEW</span><h2>4 câu hỏi trước khi dùng một công thức</h2></div><div class="principles"><div><b>01</b><span>Đại lượng nào đang thay đổi?</span></div><div><b>02</b><span>Điều kiện để công thức đúng?</span></div><div><b>03</b><span>Đơn vị SI là gì?</span></div><div><b>04</b><span>Đồ thị nói gì về mối quan hệ?</span></div></div></section>
+    </section>
+
+    <section id="detailView" class="view"><button class="back-btn" data-action="home">← Tổng quan</button><div id="detailContent"></div></section>
+
+    <section id="practiceView" class="view"><div class="section-head"><div><span class="eyebrow">PRACTICE</span><h2>Luyện tập theo bản chất</h2></div><button class="btn btn-soft" data-action="randomQuestion">🎲 Câu khác</button></div><div id="quizBox" class="quiz-box"></div></section>
+
+    <section id="savedView" class="view"><div class="section-head"><div><span class="eyebrow">MY NOTES</span><h2>Kiến thức đã lưu</h2></div></div><div id="savedList" class="saved-list"></div></section>
+  </main>
+
+  <dialog id="authDialog"><form method="dialog" id="authForm"><button class="dialog-close" value="cancel" aria-label="Đóng">×</button><div class="eyebrow">FIREBASE AUTH</div><h2>Đăng nhập để đồng bộ</h2><p class="muted">Dữ liệu tiến độ/lưu bài có thể lưu vào Firestore sau khi bật Authentication & Firestore trong project Firebase.</p><label>Email<input id="email" type="email" required autocomplete="email"></label><label>Mật khẩu<input id="password" type="password" required minlength="6" autocomplete="current-password"></label><div class="auth-actions"><button id="loginBtn" class="btn btn-primary" value="default">Đăng nhập</button><button id="signupBtn" type="button" class="btn btn-soft">Tạo tài khoản</button></div></form></dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>
