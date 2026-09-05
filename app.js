@@ -5,7 +5,7 @@ import { getFirestore, doc, setDoc, getDoc, arrayUnion } from 'https://www.gstat
 
 const app = initializeApp(firebaseConfig); const auth = getAuth(app); const db = getFirestore(app);
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const state={user:null,saved:new Set(),chart:null,topic:null,graphGrade:'all'};
+const state={user:null,saved:new Set(),chart:null,topic:null};
 
 const grades=[
  {id:9,title:'Lớp 9',desc:'Điện học • điện từ • quang học • năng lượng',topics:['Định luật Ôm','Công suất điện','Điện từ','Quang học']},
@@ -84,110 +84,74 @@ topic('Phóng xạ','Hạt nhân không bền tự biến đổi thành hạt nh
 function topic(name,essence,formula,units,condition,insight,types){return{name,essence,formula,units,condition,insight,types}}
 
 const graphLibrary=[
-{id:'g9-ohm',grade:'9',area:'Điện học',name:'Vôn–Ampe của điện trở (I–U)',x:'U (V)',y:'I (A)',formula:'I=U/R',shape:'Đường thẳng qua O',slope:'1/R',areaMeaning:'—',points:'O(0,0). R càng nhỏ → đường càng dốc.',memory:'I theo U: dốc = 1/R.'},
-{id:'g9-u-i',grade:'9',area:'Điện học',name:'Hiệu điện thế–cường độ (U–I)',x:'I (A)',y:'U (V)',formula:'U=RI',shape:'Đường thẳng qua O',slope:'R',areaMeaning:'—',points:'O(0,0). R lớn → dốc lớn.',memory:'Đổi trục thì độ dốc đổi: U–I → dốc R.'},
-{id:'g9-power-u',grade:'9',area:'Điện học',name:'Công suất–hiệu điện thế',x:'U (V)',y:'P (W)',formula:'P=U²/R',shape:'Parabol',slope:'Tăng theo U',areaMeaning:'—',points:'U=0 → P=0; U×2 → P×4.',memory:'P theo U là bình phương nếu R không đổi.'},
-{id:'g9-power-i',grade:'9',area:'Điện học',name:'Công suất–cường độ dòng điện',x:'I (A)',y:'P (W)',formula:'P=I²R',shape:'Parabol',slope:'Tăng theo I',areaMeaning:'—',points:'I=0 → P=0.',memory:'P theo I cũng là bình phương nếu R không đổi.'},
-{id:'g9-energy-t',grade:'9',area:'Điện học',name:'Điện năng–thời gian',x:'t',y:'A',formula:'A=Pt',shape:'Đường thẳng qua O',slope:'P',areaMeaning:'—',points:'t=0 → A=0.',memory:'A–t: dốc = công suất.'},
-{id:'g9-efficiency',grade:'9',area:'Năng lượng',name:'Năng lượng có ích–năng lượng toàn phần',x:'A_toàn phần',y:'A_có ích',formula:'H=A_ích/A_tp',shape:'Đường thẳng qua O',slope:'H',areaMeaning:'—',points:'Độ dốc biểu diễn hiệu suất ở mô hình đơn giản.',memory:'Hiệu suất = phần có ích / phần cung cấp.'},
-{id:'g10-x-t',grade:'10',area:'Động học',name:'Tọa độ–thời gian (x–t)',x:'t (s)',y:'x (m)',formula:'x=x₀+vt',shape:'Đường thẳng',slope:'v',areaMeaning:'—',points:'Dốc dương → v>0; dốc âm → v<0.',memory:'x–t: độ dốc = vận tốc.'},
-{id:'g10-v-t',grade:'10',area:'Động học',name:'Vận tốc–thời gian (v–t)',x:'t (s)',y:'v (m/s)',formula:'v=v₀+at',shape:'Đường thẳng',slope:'a',areaMeaning:'Diện tích đại số = Δx',points:'v=0 có thể là thời điểm đổi chiều.',memory:'v–t: dốc = a, diện tích = Δx.'},
-{id:'g10-a-t',grade:'10',area:'Động học',name:'Gia tốc–thời gian (a–t)',x:'t (s)',y:'a (m/s²)',formula:'a=const',shape:'Đường ngang',slope:'0',areaMeaning:'Diện tích đại số = Δv',points:'Trên Ox: a>0; dưới Ox: a<0.',memory:'a–t: diện tích = độ biến thiên vận tốc.'},
-{id:'g10-F-t',grade:'10',area:'Động lực học',name:'Lực–thời gian',x:'t (s)',y:'F (N)',formula:'J=∫Fdt',shape:'Xung lực',slope:'Tùy lực',areaMeaning:'Diện tích = xung lượng',points:'Lực càng lâu/càng lớn → xung lượng càng lớn.',memory:'F–t: diện tích = xung lượng.'},
-{id:'g10-p-t',grade:'10',area:'Động lượng',name:'Động lượng–thời gian',x:'t (s)',y:'p (kg·m/s)',formula:'Δp=∫Fdt',shape:'Đường xiên nếu F không đổi',slope:'F',areaMeaning:'—',points:'Dốc của p–t bằng lực theo phương đang xét.',memory:'p–t: dốc = F.'},
-{id:'g10-F-s',grade:'10',area:'Công–năng lượng',name:'Lực–quãng đường (F–s)',x:'s (m)',y:'F (N)',formula:'A=∫Fds',shape:'Đường ngang nếu F không đổi',slope:'0',areaMeaning:'Diện tích = công',points:'F cùng chiều chuyển động → công dương.',memory:'F–s: diện tích = công.'},
-{id:'g10-F-dl',grade:'10',area:'Lực đàn hồi',name:'Lực đàn hồi–độ biến dạng',x:'Δl (m)',y:'F (N)',formula:'F=k|Δl|',shape:'Đường thẳng qua O',slope:'k',areaMeaning:'—',points:'Độ dốc = độ cứng lò xo.',memory:'F–Δl: dốc = k.'},
-{id:'g10-F-N',grade:'10',area:'Lực ma sát',name:'Ma sát–áp lực',x:'N (N)',y:'Fms (N)',formula:'Fms=μN',shape:'Đường thẳng qua O',slope:'μ',areaMeaning:'—',points:'N tăng → ma sát trượt tăng theo μ.',memory:'Dốc = μ.'},
-{id:'g10-Ek-v',grade:'10',area:'Năng lượng',name:'Động năng–vận tốc',x:'v',y:'Wđ',formula:'Wđ=mv²/2',shape:'Parabol',slope:'Thay đổi',areaMeaning:'—',points:'v đổi dấu nhưng Wđ không đổi.',memory:'Động năng phụ thuộc v².'},
-{id:'g10-Ek-p',grade:'10',area:'Năng lượng',name:'Động năng–động lượng',x:'p',y:'Wđ',formula:'Wđ=p²/(2m)',shape:'Parabol',slope:'Thay đổi',areaMeaning:'—',points:'p=0 → Wđ=0.',memory:'Wđ phụ thuộc p² khi m không đổi.'},
-{id:'g10-p-v',grade:'10',area:'Động lượng',name:'Động lượng–vận tốc',x:'v',y:'p',formula:'p=mv',shape:'Đường thẳng qua O',slope:'m',areaMeaning:'—',points:'m lớn → đường dốc hơn.',memory:'p–v: dốc = khối lượng.'},
-{id:'g11-x-t',grade:'11',area:'Dao động điều hòa',name:'Li độ–thời gian (x–t)',x:'t/T',y:'x/A',formula:'x=Acos(ωt+φ)',shape:'Cosin',slope:'dx/dt=v',areaMeaning:'—',points:'Biên: x=±A, v=0. Cân bằng: x=0, |v|max.',memory:'x là cos → v đổi sang −sin → a đổi sang −cos.'},
-{id:'g11-v-t',grade:'11',area:'Dao động điều hòa',name:'Vận tốc–thời gian (v–t)',x:'t/T',y:'v/(ωA)',formula:'v=−ωAsin(ωt+φ)',shape:'Sin lệch pha',slope:'dv/dt=a',areaMeaning:'Diện tích đại số ∝ Δx',points:'v=0 ở biên; |v|max tại cân bằng.',memory:'v sớm pha π/2 so với x.'},
-{id:'g11-a-t',grade:'11',area:'Dao động điều hòa',name:'Gia tốc–thời gian (a–t)',x:'t/T',y:'a/(ω²A)',formula:'a=−ω²Acos(ωt+φ)',shape:'Cosin ngược pha',slope:'da/dt không phải đại lượng chính',areaMeaning:'—',points:'|a|max ở biên; a=0 tại cân bằng.',memory:'a ngược pha x, lệch π/2 với v.'},
-{id:'g11-xva-t',grade:'11',area:'Dao động điều hòa',name:'x, v, a trên cùng trục thời gian',x:'t/T',y:'Chuẩn hóa',formula:'x/A=cosθ; v/(ωA)=−sinθ; a/(ω²A)=−cosθ',shape:'3 đường cùng pha chuẩn',slope:'x→v→a là đạo hàm liên tiếp',areaMeaning:'—',points:'x và a trái dấu; v lệch π/2 so với x.',memory:'Nhìn 3 đường: x và a đối nhau; v là đường vuông pha.'},
-{id:'g11-v-x',grade:'11',area:'Dao động điều hòa',name:'Vận tốc–li độ (v–x)',x:'x/A',y:'v/(ωA)',formula:'x²/A²+v²/(ω²A²)=1',shape:'Elip',slope:'Thay đổi',areaMeaning:'—',points:'x=±A → v=0; x=0 → |v|=ωA.',memory:'Biên nằm hai đầu trục x; cân bằng nằm hai đầu trục v.'},
-{id:'g11-a-x',grade:'11',area:'Dao động điều hòa',name:'Gia tốc–li độ (a–x)',x:'x',y:'a',formula:'a=−ω²x',shape:'Đường thẳng dốc âm',slope:'−ω²',areaMeaning:'—',points:'x>0 → a<0; x<0 → a>0.',memory:'Gia tốc luôn kéo vật về vị trí cân bằng.'},
-{id:'g11-F-x',grade:'11',area:'Dao động điều hòa',name:'Lực kéo về–li độ (F–x)',x:'x',y:'F',formula:'F=−kx',shape:'Đường thẳng dốc âm',slope:'−k',areaMeaning:'—',points:'x=0 → F=0.',memory:'F kéo về nên trái dấu x.'},
-{id:'g11-Wt-x',grade:'11',area:'Năng lượng dao động',name:'Thế năng–li độ',x:'x/A',y:'Wt/E',formula:'Wt/E=x²/A²',shape:'Parabol hướng lên',slope:'Thay đổi',areaMeaning:'—',points:'Biên → Wt=E; cân bằng → Wt=0.',memory:'Thế năng tăng theo bình phương li độ.'},
-{id:'g11-Wd-x',grade:'11',area:'Năng lượng dao động',name:'Động năng–li độ',x:'x/A',y:'Wđ/E',formula:'Wđ/E=1−x²/A²',shape:'Parabol hướng xuống',slope:'Thay đổi',areaMeaning:'—',points:'Cân bằng → Wđ=E; biên → Wđ=0.',memory:'Wđ + Wt = E.'},
-{id:'g11-Wt-t',grade:'11',area:'Năng lượng dao động',name:'Thế năng–thời gian',x:'t/T',y:'Wt/E',formula:'Wt/E=cos²(ωt+φ)',shape:'Sin²/cos²',slope:'Thay đổi',areaMeaning:'—',points:'Chu kỳ biến thiên năng lượng = T/2.',memory:'Bình phương sin/cos → chu kỳ còn T/2.'},
-{id:'g11-Wd-t',grade:'11',area:'Năng lượng dao động',name:'Động năng–thời gian',x:'t/T',y:'Wđ/E',formula:'Wđ/E=sin²(ωt+φ)',shape:'Sin²/cos²',slope:'Thay đổi',areaMeaning:'—',points:'Wđ max ở cân bằng; bằng 0 ở biên.',memory:'Wđ và Wt lệch nhau T/4 theo thời gian.'},
-{id:'g11-E-r',grade:'11',area:'Điện trường',name:'Cường độ điện trường–khoảng cách',x:'r',y:'E',formula:'E=k|Q|/r²',shape:'1/r²',slope:'Âm, thay đổi',areaMeaning:'—',points:'r×2 → E/4.',memory:'Ra xa gấp 2 → E còn 1/4.'},
-{id:'g11-F-r',grade:'11',area:'Điện trường',name:'Lực Coulomb–khoảng cách',x:'r',y:'F',formula:'F=k|q₁q₂|/r²',shape:'1/r²',slope:'Âm, thay đổi',areaMeaning:'—',points:'r×2 → F/4.',memory:'Nhớ r² ở mẫu.'},
-{id:'g11-V-r',grade:'11',area:'Điện trường',name:'Điện thế–khoảng cách',x:'r',y:'V',formula:'V=kQ/r',shape:'1/r',slope:'Âm, thay đổi',areaMeaning:'—',points:'Q dương → V dương; Q âm → V âm.',memory:'V giảm theo 1/r, không phải 1/r².'},
-{id:'g11-F-q',grade:'11',area:'Điện trường',name:'Lực điện–điện tích thử',x:'q',y:'F',formula:'F=qE',shape:'Đường thẳng qua O',slope:'E',areaMeaning:'—',points:'Với E cố định, F tỉ lệ q.',memory:'F–q: dốc = E.'},
-{id:'g11-I-t',grade:'11',area:'Dòng điện',name:'Cường độ dòng điện–thời gian',x:'t',y:'I',formula:'q=∫Idt',shape:'Đường ngang nếu I không đổi',slope:'0',areaMeaning:'Diện tích = điện lượng q',points:'I không đổi → q tăng đều.',memory:'I–t: diện tích = q.'},
-{id:'g11-U-I-source',grade:'11',area:'Nguồn điện',name:'Hiệu điện thế nguồn–dòng điện',x:'I',y:'U',formula:'U=ℰ−Ir',shape:'Đường thẳng dốc âm',slope:'−r',areaMeaning:'—',points:'I=0 → U=ℰ; U=0 → I=ℰ/r.',memory:'Oy = ℰ; dốc = −r.'},
-{id:'g11-P-I',grade:'11',area:'Dòng điện',name:'Công suất tỏa nhiệt–dòng điện',x:'I',y:'P',formula:'P=I²R',shape:'Parabol',slope:'Thay đổi',areaMeaning:'—',points:'I đổi dấu nhưng P không đổi.',memory:'P phụ thuộc I².'},
-{id:'g11-wave-x',grade:'11',area:'Sóng cơ',name:'Li độ–vị trí (u–x)',x:'x/λ',y:'u/A',formula:'u=Acos(ωt−2πx/λ+φ)',shape:'Sin/cos theo không gian',slope:'Thay đổi',areaMeaning:'—',points:'Hai điểm cùng pha gần nhất cách nhau λ.',memory:'Đồ thị u–x → đọc bước sóng λ.'},
-{id:'g11-wave-t',grade:'11',area:'Sóng cơ',name:'Li độ–thời gian (u–t)',x:'t/T',y:'u/A',formula:'u=Acos(ωt+φ)',shape:'Sin/cos',slope:'du/dt là vận tốc dao động',areaMeaning:'—',points:'Một chu kỳ trên đồ thị = T.',memory:'u–t → đọc T; u–x → đọc λ.'},
-{id:'g11-standing',grade:'11',area:'Sóng dừng',name:'Biên độ sóng dừng–vị trí',x:'x/λ',y:'A(x)',formula:'A(x)∝|sin(2πx/λ)|',shape:'Nút–bụng tuần hoàn',slope:'—',areaMeaning:'—',points:'Nút: A=0; bụng: Amax; nút–nút = λ/2.',memory:'Nút–bụng cách λ/4.'},
-{id:'g12-p-V',grade:'12',area:'Khí lý tưởng',name:'Áp suất–thể tích đẳng nhiệt',x:'V',y:'p',formula:'pV=const',shape:'Hypebol',slope:'Âm, thay đổi',areaMeaning:'Diện tích p–V có thể biểu diễn công trong nhiệt động lực học',points:'V tăng → p giảm.',memory:'Đẳng nhiệt: pV không đổi.'},
-{id:'g12-V-T',grade:'12',area:'Khí lý tưởng',name:'Thể tích–nhiệt độ đẳng áp',x:'T (K)',y:'V',formula:'V/T=const',shape:'Đường thẳng qua O',slope:'const',areaMeaning:'—',points:'Phải dùng Kelvin.',memory:'Đẳng áp: V∝T.'},
-{id:'g12-p-T',grade:'12',area:'Khí lý tưởng',name:'Áp suất–nhiệt độ đẳng tích',x:'T (K)',y:'p',formula:'p/T=const',shape:'Đường thẳng qua O',slope:'const',areaMeaning:'—',points:'Phải dùng Kelvin.',memory:'Đẳng tích: p∝T.'},
-{id:'g12-u-t',grade:'12',area:'Điện xoay chiều',name:'Điện áp–thời gian (u–t)',x:'t/T',y:'u/U₀',formula:'u=U₀cos(ωt+φ)',shape:'Cosin',slope:'du/dt thay đổi',areaMeaning:'—',points:'U₀ là biên độ; U=U₀/√2 là hiệu dụng.',memory:'Hiệu dụng = biên độ/√2.'},
-{id:'g12-i-t',grade:'12',area:'Điện xoay chiều',name:'Dòng điện–thời gian (i–t)',x:'t/T',y:'i/I₀',formula:'i=I₀cos(ωt+φ_i)',shape:'Cosin',slope:'di/dt thay đổi',areaMeaning:'—',points:'Pha i phụ thuộc mạch.',memory:'So pha i với u để nhận biết R, L, C.'},
-{id:'g12-ZL-f',grade:'12',area:'Điện xoay chiều',name:'Cảm kháng–tần số',x:'f',y:'ZL',formula:'ZL=2πfL',shape:'Đường thẳng qua O',slope:'2πL',areaMeaning:'—',points:'f tăng → ZL tăng.',memory:'Cuộn cảm cản mạnh hơn khi f tăng.'},
-{id:'g12-ZC-f',grade:'12',area:'Điện xoay chiều',name:'Dung kháng–tần số',x:'f',y:'ZC',formula:'ZC=1/(2πfC)',shape:'1/f',slope:'Âm, thay đổi',areaMeaning:'—',points:'f tăng → ZC giảm.',memory:'Tụ: f càng cao → ZC càng nhỏ.'},
-{id:'g12-Z-f',grade:'12',area:'Điện xoay chiều',name:'Tổng trở–tần số RLC',x:'f',y:'Z',formula:'Z=√(R²+(ZL−ZC)²)',shape:'Có đáy tại cộng hưởng',slope:'Đổi dấu quanh f₀',areaMeaning:'—',points:'f₀: Z nhỏ nhất = R.',memory:'RLC: Z thấp nhất → I cao nhất.'},
-{id:'g12-I-f',grade:'12',area:'Điện xoay chiều',name:'Cường độ hiệu dụng–tần số RLC',x:'f',y:'I',formula:'I=U/Z',shape:'Đỉnh cộng hưởng',slope:'Tăng rồi giảm',areaMeaning:'—',points:'f₀: ZL=ZC → Imax.',memory:'Cộng hưởng = I max.'},
-{id:'g12-phi-f',grade:'12',area:'Điện xoay chiều',name:'Độ lệch pha–tần số RLC',x:'f',y:'φ',formula:'tanφ=(ZL−ZC)/R',shape:'Đổi dấu qua cộng hưởng',slope:'Thay đổi',areaMeaning:'—',points:'f=f₀ → φ=0.',memory:'Trước cộng hưởng mạch thiên C; sau cộng hưởng thiên L.'},
-{id:'g12-photon-f',grade:'12',area:'Lượng tử ánh sáng',name:'Năng lượng photon–tần số',x:'f',y:'E',formula:'E=hf',shape:'Đường thẳng qua O',slope:'h',areaMeaning:'—',points:'f tăng → E tăng tuyến tính.',memory:'Độ dốc E–f chính là h.'},
-{id:'g12-W-f',grade:'12',area:'Quang điện',name:'Động năng cực đại–tần số',x:'f',y:'Wđmax',formula:'Wđmax=hf−A',shape:'Đường thẳng',slope:'h',areaMeaning:'—',points:'f=f₀ → Wđmax=0.',memory:'Kéo dài đường thẳng tới Oy → −A.'},
-{id:'g12-Uh-f',grade:'12',area:'Quang điện',name:'Hiệu điện thế hãm–tần số',x:'f',y:'Uh',formula:'eUh=hf−A',shape:'Đường thẳng',slope:'h/e',areaMeaning:'—',points:'f=f₀ → Uh=0.',memory:'Đường Uh–f cắt Ox tại f₀.'},
-{id:'g12-N-t',grade:'12',area:'Hạt nhân',name:'Số hạt chưa phân rã–thời gian',x:'t/T₁/₂',y:'N/N₀',formula:'N=N₀·2^(−t/T₁/₂)',shape:'Hàm mũ giảm',slope:'Âm, thay đổi',areaMeaning:'—',points:'Mỗi T₁/₂ → còn một nửa.',memory:'0→1→2 chu kỳ: 1→1/2→1/4.'},
-{id:'g12-H-t',grade:'12',area:'Hạt nhân',name:'Độ phóng xạ–thời gian',x:'t/T₁/₂',y:'H/H₀',formula:'H=H₀·2^(−t/T₁/₂)',shape:'Hàm mũ giảm',slope:'Âm, thay đổi',areaMeaning:'—',points:'Sau mỗi chu kỳ bán rã, H còn một nửa.',memory:'H và N giảm cùng quy luật.'},
-{id:'g12-m-t',grade:'12',area:'Hạt nhân',name:'Khối lượng chất phóng xạ–thời gian',x:'t/T₁/₂',y:'m/m₀',formula:'m=m₀·2^(−t/T₁/₂)',shape:'Hàm mũ giảm',slope:'Âm, thay đổi',areaMeaning:'—',points:'m còn 1/2 sau một chu kỳ bán rã.',memory:'N, m, H cùng chung dạng giảm.'},
-{id:'g12-binding-A',grade:'12',area:'Hạt nhân',name:'Năng lượng liên kết riêng–số khối',x:'A',y:'Wlk/A',formula:'Định tính',shape:'Tăng nhanh rồi đạt cực đại gần vùng Fe–Ni, sau đó giảm chậm',slope:'Đổi dấu',areaMeaning:'—',points:'Hạt nhân vùng trung bình có liên kết riêng lớn.',memory:'Đỉnh gần Fe–Ni → giải thích năng lượng từ phân hạch/hợp hạch.'}
+{id:'g9-ohm',grade:'9',area:'Điện học',name:'Vôn – Ampe của điện trở',x:'U (V)',y:'I (A)',formula:'I=U/R',shape:'Đường thẳng qua O',slope:'k=1/R',areaMeaning:'Không có ý nghĩa diện tích chuẩn trong bài cơ bản.',points:'O(0,0). Độ dốc càng lớn → R càng nhỏ.',memory:'I trên – U dưới → dốc = 1/R.'},
+{id:'g9-power-u',grade:'9',area:'Điện học',name:'Công suất – hiệu điện thế',x:'U (V)',y:'P (W)',formula:'P=U²/R',shape:'Parabol',slope:'Độ dốc thay đổi theo U; không phải hằng số.',areaMeaning:'Không dùng diện tích để đọc đại lượng trong chương trình cơ bản.',points:'O là trạng thái U=0 → P=0.',memory:'U ×2 → P ×4 (R không đổi).'},
+{id:'g9-energy-t',grade:'9',area:'Điện học',name:'Điện năng – thời gian',x:'t (s hoặc h)',y:'A (J hoặc kWh)',formula:'A=Pt',shape:'Đường thẳng',slope:'k=P',areaMeaning:'Không dùng diện tích; chính độ dốc cho công suất.',points:'A=0 tại t=0.',memory:'A tăng đều theo t nếu P không đổi.'},
+{id:'g10-x-t',grade:'10',area:'Cơ học',name:'Tọa độ – thời gian',x:'t (s)',y:'x (m)',formula:'x=x₀+vt',shape:'Đường thẳng (thẳng đều)',slope:'k=v',areaMeaning:'Không có ý nghĩa diện tích chuẩn.',points:'Giao Ox: thời điểm x=0; giao nhau của hai đường → cùng vị trí cùng lúc.',memory:'x–t: nhìn dốc → biết v.'},
+{id:'g10-v-t',grade:'10',area:'Cơ học',name:'Vận tốc – thời gian',x:'t (s)',y:'v (m/s)',formula:'v=v₀+at',shape:'Đường thẳng',slope:'k=a',areaMeaning:'Diện tích đại số = độ dịch chuyển Δx.',points:'v=0 → đổi chiều nếu gia tốc tiếp tục làm v đổi dấu.',memory:'v–t: dốc = a; diện tích = Δx.'},
+{id:'g10-a-t',grade:'10',area:'Cơ học',name:'Gia tốc – thời gian',x:'t (s)',y:'a (m/s²)',formula:'a=const (chuyển động biến đổi đều)',shape:'Đường ngang',slope:'Độ dốc bằng 0 khi a không đổi.',areaMeaning:'Diện tích đại số = Δv.',points:'Trên Ox → a>0; dưới Ox → a<0.',memory:'a–t: diện tích → Δv.'},
+{id:'g10-F-s',grade:'10',area:'Công – năng lượng',name:'Lực – quãng đường',x:'s (m)',y:'F (N)',formula:'A=∫F ds',shape:'Đường ngang nếu F không đổi',slope:'0 nếu F không đổi.',areaMeaning:'Diện tích dưới F–s = công A.',points:'Đổi dấu F → công có thể âm.',memory:'F–s: diện tích = công.'},
+{id:'g10-F-dl',grade:'10',area:'Lực đàn hồi',name:'Lực đàn hồi – độ biến dạng',x:'Δl (m)',y:'F (N)',formula:'F=kΔl',shape:'Đường thẳng qua O',slope:'k',areaMeaning:'Diện tích không phải đại lượng chính trong bài cơ bản.',points:'O: chưa biến dạng.',memory:'Dốc của F–Δl = độ cứng k.'},
+{id:'g10-F-N',grade:'10',area:'Lực ma sát',name:'Ma sát – áp lực',x:'N (N)',y:'Fms (N)',formula:'Fms=μN',shape:'Đường thẳng qua O',slope:'μ',areaMeaning:'Không dùng diện tích.',points:'O: N=0 → mô hình Fms=0.',memory:'Dốc = μ.'},
+{id:'g11-x-t',grade:'11',area:'Dao động',name:'Li độ – thời gian',x:'t (s)',y:'x (m)',formula:'x=Acos(ωt+φ)',shape:'Sin/cos',slope:'dx/dt=v',areaMeaning:'Không dùng diện tích để đọc x.',points:'±A là biên; x=0 là cân bằng; chu kỳ T.',memory:'Biên: v=0. Cân bằng: |v|max.'},
+{id:'g11-v-t',grade:'11',area:'Dao động',name:'Vận tốc – thời gian',x:'t (s)',y:'v (m/s)',formula:'v=−ωAsin(ωt+φ)',shape:'Sin/cos, sớm pha π/2 so với x',slope:'dv/dt=a',areaMeaning:'Diện tích đại số = Δx.',points:'v=0 tại biên; |v|max tại cân bằng.',memory:'v sớm x π/2.'},
+{id:'g11-a-t',grade:'11',area:'Dao động',name:'Gia tốc – thời gian',x:'t (s)',y:'a (m/s²)',formula:'a=−ω²Acos(ωt+φ)',shape:'Sin/cos, ngược pha x',slope:'da/dt không phải đại lượng trọng tâm.',areaMeaning:'Không dùng diện tích trong dạng cơ bản.',points:'|a|max ở biên; a=0 tại cân bằng.',memory:'a ngược pha x.'},
+{id:'g11-v-x',grade:'11',area:'Dao động',name:'Vận tốc – li độ',x:'x (m)',y:'v (m/s)',formula:'x²/A²+v²/(ω²A²)=1',shape:'Elip',slope:'Độ dốc thay đổi; không có ý nghĩa đơn giản cố định.',areaMeaning:'Không dùng diện tích trong dạng cơ bản.',points:'x=±A → v=0; x=0 → |v|=vmax.',memory:'Biên nằm ngang; cân bằng nằm trên/dưới.'},
+{id:'g11-a-x',grade:'11',area:'Dao động',name:'Gia tốc – li độ',x:'x (m)',y:'a (m/s²)',formula:'a=−ω²x',shape:'Đường thẳng dốc âm qua O',slope:'−ω²',areaMeaning:'Không dùng diện tích.',points:'x=+A → a âm max; x=−A → a dương max.',memory:'x sang phải → a kéo sang trái.'},
+{id:'g11-energy-t',grade:'11',area:'Dao động',name:'Động năng / thế năng – thời gian',x:'t (s)',y:'Wđ, Wt (J)',formula:'Wt=½kx²; Wđ=½mv²',shape:'Sin²/cos²; chu kỳ T/2',slope:'Thay đổi theo thời gian.',areaMeaning:'Không dùng diện tích.',points:'Wt max ở biên; Wđ max ở cân bằng; cơ năng không đổi.',memory:'Bình phương → chu kỳ còn T/2.'},
+{id:'g11-wave-x',grade:'11',area:'Sóng cơ',name:'Li độ – vị trí tại một thời điểm',x:'x (m)',y:'u (m)',formula:'u=Acos(ωt−2πx/λ+φ)',shape:'Sin/cos theo không gian',slope:'Không phải đại lượng cố định.',areaMeaning:'Không dùng diện tích.',points:'Khoảng cách hai điểm gần nhau cùng pha = λ.',memory:'Đồ thị theo x → đọc bước sóng λ.'},
+{id:'g11-wave-t',grade:'11',area:'Sóng cơ',name:'Li độ – thời gian tại một điểm',x:'t (s)',y:'u (m)',formula:'u=Acos(ωt+φ)',shape:'Sin/cos',slope:'du/dt là vận tốc dao động của phần tử.',areaMeaning:'Không dùng diện tích trong dạng cơ bản.',points:'Một chu kỳ thời gian = T.',memory:'Theo thời gian → đọc T, f, ω.'},
+{id:'g11-standing',grade:'11',area:'Sóng dừng',name:'Hình dạng sóng dừng',x:'x (m)',y:'u (m)',formula:'A(x)∝|sin(2πx/λ)| (mô hình minh họa)',shape:'Nút – bụng lặp lại',slope:'Không dùng như đồ thị động lực học.',areaMeaning:'Không dùng diện tích.',points:'Nút: biên độ 0; bụng: biên độ cực đại.',memory:'Nút–bụng λ/4; nút–nút λ/2.'},
+{id:'g11-E-r',grade:'11',area:'Điện trường',name:'Cường độ điện trường – khoảng cách',x:'r (m)',y:'E (N/C)',formula:'E=k|Q|/r²',shape:'Giảm theo 1/r²',slope:'Không cố định.',areaMeaning:'Không dùng diện tích.',points:'r×2 → E/4.',memory:'Ra xa 2 lần → điện trường còn 1/4.'},
+{id:'g11-F-r',grade:'11',area:'Điện trường',name:'Lực Coulomb – khoảng cách',x:'r (m)',y:'F (N)',formula:'F=k|q₁q₂|/r²',shape:'Giảm theo 1/r²',slope:'Không cố định.',areaMeaning:'Không dùng diện tích.',points:'r×2 → F/4.',memory:'r² nằm mẫu → tăng r rất nhanh làm F giảm.'},
+{id:'g11-I-t',grade:'11',area:'Dòng điện',name:'Cường độ dòng điện – thời gian',x:'t (s)',y:'I (A)',formula:'q=∫I dt',shape:'Đường ngang nếu I không đổi',slope:'0 nếu I không đổi.',areaMeaning:'Diện tích = điện lượng q.',points:'I>0 và I<0 thể hiện chiều quy ước.',memory:'I–t: diện tích = q.'},
+{id:'g11-U-I-source',grade:'11',area:'Nguồn điện',name:'Hiệu điện thế mạch ngoài – dòng điện',x:'I (A)',y:'U (V)',formula:'U=ℰ−Ir',shape:'Đường thẳng dốc âm',slope:'−r',areaMeaning:'Không dùng diện tích.',points:'I=0 → U=ℰ.',memory:'Giao Oy = ℰ; độ dốc âm = −r.'},
+{id:'g12-p-V',grade:'12',area:'Khí lý tưởng',name:'Áp suất – thể tích đẳng nhiệt',x:'V (m³)',y:'p (Pa)',formula:'pV=const',shape:'Hypebol',slope:'Không cố định.',areaMeaning:'Diện tích dưới p–V có thể liên quan công của khí trong nhiệt động lực học.',points:'V tăng → p giảm.',memory:'Đẳng nhiệt: pV giữ nguyên.'},
+{id:'g12-V-T',grade:'12',area:'Khí lý tưởng',name:'Thể tích – nhiệt độ đẳng áp',x:'T (K)',y:'V (m³)',formula:'V/T=const',shape:'Đường thẳng qua O',slope:'V/T',areaMeaning:'Không dùng diện tích.',points:'T phải tính theo Kelvin.',memory:'Đẳng áp: V tỉ lệ T.'},
+{id:'g12-p-T',grade:'12',area:'Khí lý tưởng',name:'Áp suất – nhiệt độ đẳng tích',x:'T (K)',y:'p (Pa)',formula:'p/T=const',shape:'Đường thẳng qua O',slope:'p/T',areaMeaning:'Không dùng diện tích.',points:'T phải tính theo Kelvin.',memory:'Đẳng tích: p tỉ lệ T.'},
+{id:'g12-u-t',grade:'12',area:'Điện xoay chiều',name:'Điện áp xoay chiều – thời gian',x:'t (s)',y:'u (V)',formula:'u=U₀cos(ωt+φ)',shape:'Sin/cos',slope:'du/dt thay đổi theo pha.',areaMeaning:'Không dùng diện tích trong dạng cơ bản.',points:'U₀ là biên độ; U=U₀/√2 là hiệu dụng.',memory:'Hiệu dụng = biên độ / √2.'},
+{id:'g12-ZL-f',grade:'12',area:'Điện xoay chiều',name:'Cảm kháng – tần số',x:'f (Hz)',y:'ZL (Ω)',formula:'ZL=2πfL',shape:'Đường thẳng qua O',slope:'2πL',areaMeaning:'Không dùng diện tích.',points:'f tăng → ZL tăng.',memory:'Cuộn cảm: f càng cao → cản càng mạnh.'},
+{id:'g12-ZC-f',grade:'12',area:'Điện xoay chiều',name:'Dung kháng – tần số',x:'f (Hz)',y:'ZC (Ω)',formula:'ZC=1/(2πfC)',shape:'Giảm theo 1/f',slope:'Không cố định.',areaMeaning:'Không dùng diện tích.',points:'f tăng → ZC giảm.',memory:'Tụ điện: f càng cao → dung kháng càng nhỏ.'},
+{id:'g12-I-f',grade:'12',area:'Điện xoay chiều',name:'Dòng điện – tần số trong RLC',x:'f (Hz)',y:'I (A)',formula:'I=U/Z',shape:'Đỉnh cộng hưởng',slope:'Thay đổi; không cố định.',areaMeaning:'Không dùng diện tích.',points:'f₀: ZL=ZC → Z=R → I max.',memory:'Cộng hưởng = ZL=ZC = I max.'},
+{id:'g12-photon-f',grade:'12',area:'Lượng tử ánh sáng',name:'Năng lượng photon – tần số',x:'f (Hz)',y:'E (J)',formula:'E=hf',shape:'Đường thẳng qua O',slope:'h',areaMeaning:'Không dùng diện tích.',points:'f=0 → mô hình E=0; photon thực tế xét f>0.',memory:'f tăng → photon năng lượng lớn.'},
+{id:'g12-W-f',grade:'12',area:'Quang điện',name:'Động năng cực đại – tần số',x:'f (Hz)',y:'Wđmax (J)',formula:'Wđmax=hf−A',shape:'Đường thẳng',slope:'h',areaMeaning:'Không dùng diện tích.',points:'Giao Ox là f₀: giới hạn quang điện.',memory:'f<f₀ → không có quang điện ngoài.'},
+{id:'g12-Uh-f',grade:'12',area:'Quang điện',name:'Hiệu điện thế hãm – tần số',x:'f (Hz)',y:'Uh (V)',formula:'eUh=hf−A',shape:'Đường thẳng',slope:'h/e',areaMeaning:'Không dùng diện tích.',points:'Giao Ox → f₀.',memory:'Độ dốc Uh–f = h/e.'},
+{id:'g12-N-t',grade:'12',area:'Hạt nhân',name:'Số hạt – thời gian phóng xạ',x:'t (s)',y:'N',formula:'N=N₀e^(−λt)',shape:'Hàm mũ giảm',slope:'Âm và thay đổi.',areaMeaning:'Không dùng diện tích.',points:'Sau T₁/₂ → N còn một nửa.',memory:'Mỗi bán rã: chia 2.'},
+{id:'g12-H-t',grade:'12',area:'Hạt nhân',name:'Độ phóng xạ – thời gian',x:'t (s)',y:'H (Bq)',formula:'H=H₀e^(−λt)',shape:'Hàm mũ giảm',slope:'Âm và thay đổi.',areaMeaning:'Không dùng diện tích.',points:'Sau T₁/₂ → H còn một nửa.',memory:'H và N cùng giảm theo e^(−λt).'}
 ];
-function renderGraphLibrary(filter='',gradeFilter='all'){
+function renderGraphLibrary(filter=''){
  const q=filter.toLowerCase();
- const list=graphLibrary.filter(g=>(gradeFilter==='all'||g.grade===gradeFilter)&&(g.name+' '+g.area+' lớp '+g.grade+' '+g.formula+' '+g.id).toLowerCase().includes(q));
- $('#graphLibrary').innerHTML=list.map(g=>`<article class="graph-library-card"><div class="graph-meta"><span class="graph-grade">LỚP ${g.grade}</span><span>${g.area}</span></div><h3>${g.name}</h3><div class="graph-canvas-wrap"><canvas id="lib-${g.id}"></canvas></div><div class="graph-info"><div><b>Ox</b><span>${g.x}</span></div><div><b>Oy</b><span>${g.y}</span></div><div><b>Quan hệ</b><span>\\(${g.formula}\\)</span></div><div><b>Dạng</b><span>${g.shape}</span></div><div><b>Độ dốc</b><span>${g.slope}</span></div><div><b>Diện tích</b><span>${g.areaMeaning}</span></div></div><div class="graph-points"><b>📍 Điểm đặc biệt:</b> ${g.points}</div><div class="memory"><b>🧠 Mẹo:</b> ${g.memory}</div></article>`).join('') || '<div class="saved-item"><b>Không tìm thấy đồ thị.</b><p class="muted">Thử “a–t”, “v–t”, “x–t”, “RLC”, “phóng xạ”...</p></div>';
- MathJax.typesetPromise(); list.forEach(g=>drawLibraryChart('lib-'+g.id,g));
+ const list=graphLibrary.filter(g=>(g.name+' '+g.area+' lớp '+g.grade+' '+g.formula).toLowerCase().includes(q));
+ $('#graphLibrary').innerHTML=list.map((g,i)=>`<article class="graph-library-card"><div class="graph-meta"><span class="graph-grade">LỚP ${g.grade}</span><span>${g.area}</span></div><h3>${g.name}</h3><div class="graph-canvas-wrap"><canvas id="lib-${g.id}"></canvas></div><div class="graph-info"><div><b>Ox</b><span>${g.x}</span></div><div><b>Oy</b><span>${g.y}</span></div><div><b>Quan hệ</b><span>\(${g.formula}\)</span></div><div><b>Dạng</b><span>${g.shape}</span></div><div><b>Độ dốc</b><span>${g.slope}</span></div><div><b>Diện tích</b><span>${g.areaMeaning}</span></div></div><div class="graph-points"><b>📍 Điểm đặc biệt:</b> ${g.points}</div><div class="memory"><b>🧠 Mẹo:</b> ${g.memory}</div></article>`).join('') || '<div class="saved-item"><b>Không tìm thấy đồ thị.</b><p class="muted">Thử tìm “dao động”, “RLC”, “v-t”, “phóng xạ”...</p></div>';
+ MathJax.typesetPromise();
+ list.forEach(g=>drawLibraryChart('lib-'+g.id,g));
 }
 function drawLibraryChart(id,g){
- const c=document.getElementById(id); if(!c)return; const ctx=c.getContext('2d');
- const n=181, labels=Array.from({length:n},(_,i)=>(-1+i*2/(n-1)).toFixed(2));
- const xs=labels.map(Number); let datasets=[]; let yTitle=g.y;
- const line=(data,label)=>datasets.push({data,label,borderWidth:2.4,pointRadius:0,tension:.12,spanGaps:false});
- if(g.id==='g11-x-t'||g.id==='g11-v-t'||g.id==='g11-a-t'||g.id==='g11-xva-t'){
-   line(xs.map(t=>Math.cos(2*Math.PI*t)),'x/A');
-   if(g.id!=='g11-x-t') line(xs.map(t=>-Math.sin(2*Math.PI*t)),'v/(ωA)');
-   if(g.id==='g11-a-t'||g.id==='g11-xva-t') line(xs.map(t=>-Math.cos(2*Math.PI*t)),'a/(ω²A)');
-   yTitle=g.id==='g11-xva-t'?'Chuẩn hóa x, v, a':g.y;
- } else if(g.id==='g11-v-x'){
-   const up=xs.map(x=>Math.sqrt(Math.max(0,1-x*x))), down=xs.map(x=>-Math.sqrt(Math.max(0,1-x*x))); line(up,'v>0'); line(down,'v<0');
- } else if(g.id==='g11-Wt-x') line(xs.map(x=>x*x),'Wt/E');
- else if(g.id==='g11-Wd-x') line(xs.map(x=>1-x*x),'Wđ/E');
- else if(g.id==='g11-Wt-t') line(xs.map(t=>Math.cos(2*Math.PI*t)**2),'Wt/E');
- else if(g.id==='g11-Wd-t') line(xs.map(t=>Math.sin(2*Math.PI*t)**2),'Wđ/E');
- else if(g.id==='g11-a-x'||g.id==='g11-F-x') line(xs.map(x=>-x));
- else if(g.id==='g11-E-r'||g.id==='g11-F-r') line(xs.map(x=>1/(Math.abs(x)+0.08)**2));
- else if(g.id==='g11-V-r') line(xs.map(x=>1/(Math.abs(x)+0.08)));
- else if(g.id==='g10-Ek-v'||g.id==='g10-Ek-p'||g.id==='g9-power-u'||g.id==='g9-power-i'||g.id==='g11-P-I') line(xs.map(x=>x*x));
- else if(g.id==='g10-F-s') line(xs.map(()=>1));
- else if(g.id==='g10-a-t') line(xs.map(()=>1));
- else if(g.id==='g10-F-t') line(xs.map(x=>Math.exp(-18*x*x)));
- else if(g.id==='g10-p-t') line(xs.map(x=>x));
- else if(g.id==='g12-p-V') line(xs.map(x=>1/(Math.abs(x)+0.12)));
- else if(g.id==='g12-ZC-f') line(xs.map(x=>1/(Math.abs(x)+0.08)));
- else if(g.id==='g12-ZL-f'||g.id==='g12-photon-f'||g.id==='g12-W-f'||g.id==='g12-Uh-f'||g.id==='g9-ohm'||g.id==='g9-u-i'||g.id==='g9-energy-t'||g.id==='g9-efficiency'||g.id==='g10-x-t'||g.id==='g10-v-t'||g.id==='g10-F-dl'||g.id==='g10-F-N'||g.id==='g10-p-v'||g.id==='g11-F-q'||g.id==='g11-I-t'||g.id==='g11-U-I-source'||g.id==='g12-V-T'||g.id==='g12-p-T') line(xs.map(x=>x));
- else if(g.id==='g12-Z-f') line(xs.map(f=>Math.sqrt(1+5*f*f))); 
- else if(g.id==='g12-I-f') line(xs.map(f=>1/(1+5*f*f)));
- else if(g.id==='g12-phi-f') line(xs.map(f=>Math.atan(2.8*f)));
- else if(g.id==='g12-N-t'||g.id==='g12-H-t'||g.id==='g12-m-t') line(xs.map(t=>Math.pow(2,-(t+1)));
- else if(g.id==='g11-standing') line(xs.map(x=>Math.abs(Math.sin(2*Math.PI*x))));
- else if(g.id==='g12-binding-A') line(xs.map(x=>{const A=56+44*x; return 8.8-0.00075*(A-56)**2;}));
- else if(g.id==='g11-wave-x'||g.id==='g11-wave-t'||g.id==='g12-u-t'||g.id==='g12-i-t') line(xs.map(x=>Math.cos(2*Math.PI*x)));
- else line(xs.map(x=>Math.sin(Math.PI*x/2)));
- const xTitle=g.x.split(' (')[0];
- new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,position:'top',labels:{boxWidth:12}}},scales:{x:{position:'bottom',title:{display:true,text:xTitle},border:{display:true,width:2},ticks:{maxTicksLimit:9}},y:{title:{display:true,text:yTitle},border:{display:true,width:2},ticks:{maxTicksLimit:7},beginAtZero:false}}}});
+ const c=document.getElementById(id);if(!c)return;const ctx=c.getContext('2d');
+ const n=121, labels=Array.from({length:n},(_,i)=>(-2+i*4/(n-1)).toFixed(1));
+ let data=[];
+ if(g.id==='g10-x-t') data=labels.map(x=>Number(x));
+ else if(g.id==='g10-v-t') data=labels.map(x=>Number(x));
+ else if(g.id==='g10-a-t') data=labels.map(()=>1);
+ else if(g.id==='g10-F-s'||g.id==='g10-F-dl'||g.id==='g10-F-N'||g.id==='g9-ohm'||g.id==='g9-energy-t'||g.id==='g12-V-T'||g.id==='g12-p-T'||g.id==='g12-ZL-f'||g.id==='g12-photon-f') data=labels.map(x=>Number(x));
+ else if(g.id==='g9-power-u') data=labels.map(x=>x*x);
+ else if(g.id==='g12-p-V'||g.id==='g11-E-r'||g.id==='g11-F-r'||g.id==='g12-ZC-f') data=labels.map(x=>1/(Math.abs(Number(x))+0.25));
+ else if(g.id==='g11-v-x') data=labels.map(x=>Math.sqrt(Math.max(0,1-Number(x)**2)));
+ else if(g.id==='g11-a-x') data=labels.map(x=>-Number(x));
+ else if(g.id==='g11-energy-t') data=labels.map(x=>Math.pow(Math.sin(Number(x)*Math.PI/2),2));
+ else if(g.id==='g11-standing') data=labels.map(x=>Math.sin(Number(x)*Math.PI)*0.85);
+ else if(g.id==='g12-I-f') data=labels.map(x=>1/(0.25+Math.pow(Number(x),2)));
+ else if(g.id==='g12-W-f'||g.id==='g12-Uh-f') data=labels.map(x=>Number(x));
+ else if(g.id==='g12-N-t'||g.id==='g12-H-t') data=labels.map(x=>Math.exp(-Math.max(Number(x),-2)/1.2));
+ else if(g.id==='g11-I-t') data=labels.map(()=>1);
+ else data=labels.map(x=>Math.cos(Number(x)*Math.PI));
+ const xTitle=g.x.split(' (')[0], yTitle=g.y.split(' (')[0];
+ new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderWidth:2.5,pointRadius:0,tension:.12}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},title:{display:false}},scales:{x:{position:'bottom',title:{display:true,text:xTitle},grid:{drawOnChartArea:true},border:{display:true,width:2},ticks:{maxTicksLimit:9}},y:{title:{display:true,text:yTitle},grid:{drawOnChartArea:true},border:{display:true,width:2},ticks:{maxTicksLimit:7},beginAtZero:false}}}});
 }
 
 function renderNav(){ $('#navList').innerHTML=`<button class="nav-item active" data-nav="home">⌂ Tổng quan</button><button class="nav-item" data-nav="graphs">⌁ Đồ thị</button>${grades.map(g=>`<button class="nav-item" data-nav="grade" data-grade="${g.id}">▣ ${g.title}</button>`).join('')}<button class="nav-item" data-nav="practice">✓ Luyện tập</button><button class="nav-item" data-nav="saved">★ Đã lưu</button>`; $$('.nav-item').forEach(b=>b.onclick=()=>{if(b.dataset.nav==='home')show('home');if(b.dataset.nav==='graphs')show('graphs');if(b.dataset.nav==='grade')showGrade(b.dataset.grade);if(b.dataset.nav==='practice')show('practice');if(b.dataset.nav==='saved')show('saved');closeMenu()})}
 function renderGrades(filter=''){const list=grades.filter(g=>(g.title+g.desc+g.topics.join(' ')).toLowerCase().includes(filter.toLowerCase()));$('#gradeGrid').innerHTML=list.map(g=>`<article class="grade-card" tabindex="0" data-grade="${g.id}"><div class="num">${g.id}</div><h3>${g.title}</h3><p>${g.desc}</p><div class="tags">${g.topics.map(x=>`<span class="tag">${x}</span>`).join('')}</div></article>`).join('');$$('.grade-card').forEach(c=>{c.onclick=()=>showGrade(c.dataset.grade);c.onkeydown=e=>{if(e.key==='Enter')showGrade(c.dataset.grade)}})}
-function show(id){$$('.view').forEach(v=>v.classList.remove('active'));$('#'+id+'View').classList.add('active');window.scrollTo({top:0,behavior:'smooth'});$$('.nav-item').forEach(x=>x.classList.remove('active'));const n=$(`[data-nav="${id==='home'?'home':id}"]`);if(n)n.classList.add('active');if(id==='saved')renderSaved();if(id==='graphs')renderGraphLibrary($('#graphSearch')?.value||'',state.graphGrade)}
+function show(id){$$('.view').forEach(v=>v.classList.remove('active'));$('#'+id+'View').classList.add('active');window.scrollTo({top:0,behavior:'smooth'});$$('.nav-item').forEach(x=>x.classList.remove('active'));const n=$(`[data-nav="${id==='home'?'home':id}"]`);if(n)n.classList.add('active');if(id==='saved')renderSaved();if(id==='graphs')renderGraphLibrary($('#graphSearch')?.value||'')}
 function showGrade(g){
  show('detail');
  const arr=topics[g]||[]; const grade=grades.find(x=>x.id==g); const lawArr=laws[g]||[]; const tipArr=tips[g]||[];
@@ -236,4 +200,4 @@ function closeMenu(){$('#sidebar').classList.remove('open');$('#menuBtn').setAtt
 $('#menuBtn').onclick=()=>{$('#sidebar').classList.toggle('open');$('#menuBtn').setAttribute('aria-expanded',$('#sidebar').classList.contains('open'))};$('#closeMenu').onclick=closeMenu;$('#searchInput').oninput=e=>renderGrades(e.target.value);$('[data-action="start"]').onclick=()=>showGrade('11');$('[data-action="random"]').onclick=()=>showGrade(['9','10','11','12'][Math.floor(Math.random()*4)]);$('[data-action="randomQuestion"]').onclick=renderQuiz);$('[data-action="home"]').onclick=()=>show('home');$('#themeBtn').onclick=()=>{document.body.classList.toggle('dark');localStorage.setItem('dark',document.body.classList.contains('dark'))};
 $('#authBtn').onclick=()=>state.user?signOut(auth):$('#authDialog').showModal();$('#loginBtn').onclick=async e=>{e.preventDefault();try{await signInWithEmailAndPassword(auth,$('#email').value,$('#password').value);$('#authDialog').close();toast('Đăng nhập thành công')}catch(err){toast(err.code||'Đăng nhập thất bại')}};$('#signupBtn').onclick=async()=>{try{await createUserWithEmailAndPassword(auth,$('#email').value,$('#password').value);$('#authDialog').close();toast('Tạo tài khoản thành công')}catch(err){toast(err.code||'Không tạo được tài khoản')}};
 onAuthStateChanged(auth,async u=>{state.user=u;$('#authBtn').textContent=u?'Đăng xuất':'Đăng nhập';await loadUserData();});
-renderNav();renderGrades();renderQuiz();renderHomeChart();$('#graphSearch')?.addEventListener('input',e=>renderGraphLibrary(e.target.value,state.graphGrade)); $$('#graphFilters [data-gfilter]').forEach(b=>b.onclick=()=>{state.graphGrade=b.dataset.gfilter;$$('#graphFilters [data-gfilter]').forEach(x=>x.classList.remove('active'));b.classList.add('active');renderGraphLibrary($('#graphSearch').value,state.graphGrade)});if(localStorage.getItem('dark')==='true')document.body.classList.add('dark');
+renderNav();renderGrades();renderQuiz();renderHomeChart();$('#graphSearch')?.addEventListener('input',e=>renderGraphLibrary(e.target.value));if(localStorage.getItem('dark')==='true')document.body.classList.add('dark');
